@@ -1,5 +1,5 @@
 {
-  "name": "Supertanks",
+  "name": "supertanks",
   "version": "0.0.1",
   "description": "A turn based hot-seat multiplayer game",
   "main": "index.js",
