@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head><title>Supertanks!</title>
+    <meta http-equiv='cache-control' content='no-cache'>    
+</head>
+<body>
+    <script id="map">
+        var r = Math.random();    
+
+        function loadScript(src) {
+            let s = document.createElement("script");
+            s.src = src+"?"+r;
+            document.body.appendChild(s);
+        }
+        
+        
+        loadScript("game.js.map");
+    </script>
+    <script id="src">
+        loadScript("game.js");
+    </script>
+
+</body>
+</html>

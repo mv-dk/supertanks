@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "noImplicitAny": false,
+      "noEmitOnError": true,
+      "removeComments": false,
+      "sourceMap": true,
+      "target": "ES2016",
+      "outDir": "dist",
+      "sourceRoot": ".",
+      "disableSourceOfProjectReferenceRedirect": true
+    },
+    "include": [
+      "src/**/*"
+    ]
+}
