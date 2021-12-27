@@ -1,16 +1,74 @@
+
+type KeyOrCode = string;
+type KeyboardEventHandler = (KeyboardEvent) => void;
+type EventHandlerSet = Set<(KeyboardEvent) => void>;
+
 class Game {
     canvas: HTMLCanvasElement;
     activeScene: Scene;
     activeSceneHandle: number;
+
+    keyDownHandlers: Map<KeyOrCode, EventHandlerSet>;
+    keyUpHandlers: Map<KeyOrCode, EventHandlerSet>;
+
     static WIDTH = 800;
     static HEIGHT = 600;
     static INTERVAL = 20;
 
+    
     constructor(){
         this.canvas = document.createElement("canvas");
         this.canvas.width = Game.WIDTH;
         this.canvas.height = Game.HEIGHT;
         document.body.appendChild(this.canvas);
+
+        this.keyDownHandlers = new Map<KeyOrCode, EventHandlerSet>();
+        this.keyUpHandlers = new Map<KeyOrCode, EventHandlerSet>();
+
+        document.addEventListener("keydown", e => this.keyDownHandler(e), false);
+        document.addEventListener("keyup", e => this.keyUpHandler(e), false);
+    }
+
+    addKeyDownHandler(key: KeyOrCode, f: KeyboardEventHandler) {
+        if (!this.keyDownHandlers.has(key)) {
+            this.keyDownHandlers.set(key, new Set());
+        }
+        this.keyDownHandlers.get(key).add(f);
+    }
+
+    removeKeyDownHandler(key: KeyOrCode, f?: KeyboardEventHandler) {
+        if (f == undefined) {
+            this.keyDownHandlers.delete(key);
+        } else {
+            this.keyDownHandlers.get(key)?.delete(f);
+        }
+    }
+
+    keyDownHandler(e: KeyboardEvent){
+        if (this.keyDownHandlers.has(e.key)) {
+            this.keyDownHandlers.get(e.key).forEach(f => f(e));
+        }
+    }
+
+    addKeyUpHandler(key: KeyOrCode, f: (KeyboardEvent) => void) {
+        if (!this.keyUpHandlers.has(key)) {
+            this.keyUpHandlers.set(key, new Set());
+        }
+        this.keyUpHandlers.get(key).add(f);
+    }
+
+    removeKeyUpHandler(key: KeyOrCode, f?: (KeyboardEvent) => void) {
+        if (f == undefined) {
+            this.keyUpHandlers.delete(key);
+        } else {
+            this.keyUpHandlers.get(key)?.delete(f);
+        }
+    }
+
+    keyUpHandler(e: KeyboardEvent){
+        if (this.keyUpHandlers.has(e.key)) {
+            this.keyUpHandlers.get(e.key).forEach(f => f(e));
+        }
     }
 
     activateScene(scene: Scene) {
@@ -276,3 +334,6 @@ ingameScene.addTanks(
 ingameScene.setBackgroundColor("black");
 
 game.activateScene(ingameScene);
+
+game.addKeyDownHandler("ArrowUp", e => console.log("yay, you pressed up"));
+
