@@ -22,11 +22,11 @@ jobs:
       - uses: actions/setup-node@v1
       - run: npm install
       - run: npm build
-#      - env: 
-#          remote_key: ${{ secrets.IDENTITY }}
-#          rsync_target: ${{ secrets.RSYNC_TARGET }}
-#        run: |
-#          mkdir ~/.ssh
-#          echo "$remote_key" > ~/.ssh/gh_actions_key
-#          chmod 600 ~/.ssh/gh_actions_key
-#          rsync --delete -a -e "ssh -i ~/.ssh/gh_actions_key -o StrictHostKeyChecking=no" src/ $rsync_target
+      - env: 
+          remote_key: ${{ secrets.IDENTITY }}
+          rsync_target: ${{ secrets.RSYNC_TARGET }}
+        run: |
+          mkdir ~/.ssh
+          echo "$remote_key" > ~/.ssh/gh_actions_key
+          chmod 600 ~/.ssh/gh_actions_key
+          rsync --delete -a -e "ssh -i ~/.ssh/gh_actions_key -o StrictHostKeyChecking=no" src/ $rsync_target
