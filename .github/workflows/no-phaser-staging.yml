@@ -29,4 +29,4 @@ jobs:
           mkdir ~/.ssh
           echo "$remote_key" > ~/.ssh/gh_actions_key
           chmod 600 ~/.ssh/gh_actions_key
-          rsync --delete -a -e "ssh -i ~/.ssh/gh_actions_key -o StrictHostKeyChecking=no" src/ $rsync_target
+          rsync --delete -a -e "ssh -i ~/.ssh/gh_actions_key -o StrictHostKeyChecking=no" dist/ $rsync_target
