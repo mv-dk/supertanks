@@ -165,6 +165,7 @@ class IngameScene extends Scene {
         let tankX = margin;
         tankOptions.forEach(o => {
             let t = new Tank(o.color, {x: tankX, y: 10});
+            t.alive = true;
             super.addActor(t);
             tankX += w;
 
@@ -346,4 +347,4 @@ game.addKeyDownHandler("ArrowUp", e => ingameScene.currentTank.power += 1);
 game.addKeyDownHandler("ArrowDown", e => ingameScene.currentTank.power -= 1);
 game.addKeyDownHandler("ArrowLeft", e => ingameScene.currentTank.increaseAngle());
 game.addKeyDownHandler("ArrowRight", e => ingameScene.currentTank.decreaseAngle());
-
+game.addKeyDownHandler("a", e => ingameScene.nextTurn());
