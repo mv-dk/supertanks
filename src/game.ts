@@ -1,15 +1,12 @@
 
 type KeyOrCode = string;
-type KeyboardEventHandler = (KeyboardEvent) => void;
-type EventHandlerSet = Set<(KeyboardEvent) => void>;
+type KeyboardEventHandler = () => void;
+type EventHandlerSet = Set<KeyboardEventHandler>;
 
 class Game {
     canvas: HTMLCanvasElement;
     activeScene: Scene;
     activeSceneHandle: number;
-
-    keyDownHandlers: Map<KeyOrCode, EventHandlerSet>;
-    keyUpHandlers: Map<KeyOrCode, EventHandlerSet>;
 
     static WIDTH = 800;
     static HEIGHT = 600;
@@ -22,53 +19,7 @@ class Game {
         this.canvas.height = Game.HEIGHT;
         document.body.appendChild(this.canvas);
 
-        this.keyDownHandlers = new Map<KeyOrCode, EventHandlerSet>();
-        this.keyUpHandlers = new Map<KeyOrCode, EventHandlerSet>();
-
-        document.addEventListener("keydown", e => this.keyDownHandler(e), false);
-        document.addEventListener("keyup", e => this.keyUpHandler(e), false);
-    }
-
-    addKeyDownHandler(key: KeyOrCode, f: KeyboardEventHandler) {
-        if (!this.keyDownHandlers.has(key)) {
-            this.keyDownHandlers.set(key, new Set());
-        }
-        this.keyDownHandlers.get(key).add(f);
-    }
-
-    removeKeyDownHandler(key: KeyOrCode, f?: KeyboardEventHandler) {
-        if (f == undefined) {
-            this.keyDownHandlers.delete(key);
-        } else {
-            this.keyDownHandlers.get(key)?.delete(f);
-        }
-    }
-
-    keyDownHandler(e: KeyboardEvent){
-        if (this.keyDownHandlers.has(e.key)) {
-            this.keyDownHandlers.get(e.key).forEach(f => f(e));
-        }
-    }
-
-    addKeyUpHandler(key: KeyOrCode, f: (KeyboardEvent) => void) {
-        if (!this.keyUpHandlers.has(key)) {
-            this.keyUpHandlers.set(key, new Set());
-        }
-        this.keyUpHandlers.get(key).add(f);
-    }
-
-    removeKeyUpHandler(key: KeyOrCode, f?: (KeyboardEvent) => void) {
-        if (f == undefined) {
-            this.keyUpHandlers.delete(key);
-        } else {
-            this.keyUpHandlers.get(key)?.delete(f);
-        }
-    }
-
-    keyUpHandler(e: KeyboardEvent){
-        if (this.keyUpHandlers.has(e.key)) {
-            this.keyUpHandlers.get(e.key).forEach(f => f(e));
-        }
+        
     }
 
     activateScene(scene: Scene) {
@@ -101,12 +52,65 @@ class Scene {
     backgroundColor: string;
     name: string;
     
+    keyDownHandlers: Map<KeyOrCode, EventHandlerSet>;
+    keyUpHandlers: Map<KeyOrCode, EventHandlerSet>;
+    keysPressed: Set<KeyOrCode>
+    
     constructor(name: string){
         this.name = name;
         this.actors = new Set<Actor>();
         this.active = false;
         this.paused = false;
         this.backgroundColor = "#000";
+
+        this.keyDownHandlers = new Map<KeyOrCode, EventHandlerSet>();
+        this.keyUpHandlers = new Map<KeyOrCode, EventHandlerSet>();
+        this.keysPressed = new Set<KeyOrCode>();
+
+        document.addEventListener("keydown", e => this.keysPressed.add(e.key), false);
+        document.addEventListener("keyup", e => this.keysPressed.delete(e.key), false);
+    }
+
+    addKeyDownHandler(key: KeyOrCode, f: KeyboardEventHandler) {
+        if (!this.keyDownHandlers.has(key)) {
+            this.keyDownHandlers.set(key, new Set());
+        }
+        this.keyDownHandlers.get(key).add(f);
+    }
+
+    removeKeyDownHandler(key: KeyOrCode, f?: KeyboardEventHandler) {
+        if (f == undefined) {
+            this.keyDownHandlers.delete(key);
+        } else {
+            this.keyDownHandlers.get(key)?.delete(f);
+        }
+    }
+
+    keyDownHandler(e: KeyboardEvent){
+        if (this.keyDownHandlers.has(e.key)) {
+            this.keyDownHandlers.get(e.key).forEach(f => f());
+        }
+    }
+
+    addKeyUpHandler(key: KeyOrCode, f: KeyboardEventHandler) {
+        if (!this.keyUpHandlers.has(key)) {
+            this.keyUpHandlers.set(key, new Set());
+        }
+        this.keyUpHandlers.get(key).add(f);
+    }
+
+    removeKeyUpHandler(key: KeyOrCode, f?: KeyboardEventHandler) {
+        if (f == undefined) {
+            this.keyUpHandlers.delete(key);
+        } else {
+            this.keyUpHandlers.get(key)?.delete(f);
+        }
+    }
+
+    keyUpHandler(e: KeyboardEvent){
+        if (this.keyUpHandlers.has(e.key)) {
+            this.keyUpHandlers.get(e.key).forEach(f => f());
+        }
     }
 
     setCanvas(canvas: HTMLCanvasElement) {
@@ -128,6 +132,9 @@ class Scene {
     }
     
     update() {
+        this.keysPressed.forEach(k => {
+            this.keyDownHandlers.get(k)?.forEach(h => h());
+        });
         this.actors.forEach(actor => {
             actor.update();
         });
@@ -343,8 +350,8 @@ ingameScene.setBackgroundColor("black");
 
 game.activateScene(ingameScene);
 
-game.addKeyDownHandler("ArrowUp", e => ingameScene.currentTank.power += 1);
-game.addKeyDownHandler("ArrowDown", e => ingameScene.currentTank.power -= 1);
-game.addKeyDownHandler("ArrowLeft", e => ingameScene.currentTank.increaseAngle());
-game.addKeyDownHandler("ArrowRight", e => ingameScene.currentTank.decreaseAngle());
-game.addKeyDownHandler("a", e => ingameScene.nextTurn());
+ingameScene.addKeyDownHandler("ArrowUp", () => ingameScene.currentTank.power += 1);
+ingameScene.addKeyDownHandler("ArrowDown", () => ingameScene.currentTank.power -= 1);
+ingameScene.addKeyDownHandler("ArrowLeft", () => ingameScene.currentTank.increaseAngle());
+ingameScene.addKeyDownHandler("ArrowRight", () => ingameScene.currentTank.decreaseAngle());
+ingameScene.addKeyDownHandler("a", () => ingameScene.nextTurn());
