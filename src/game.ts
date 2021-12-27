@@ -54,7 +54,8 @@ class Scene {
     
     keyDownHandlers: Map<KeyOrCode, EventHandlerSet>;
     keyUpHandlers: Map<KeyOrCode, EventHandlerSet>;
-    keysPressed: Set<KeyOrCode>
+    keysDown: Set<KeyOrCode>
+
     
     constructor(name: string){
         this.name = name;
@@ -65,10 +66,10 @@ class Scene {
 
         this.keyDownHandlers = new Map<KeyOrCode, EventHandlerSet>();
         this.keyUpHandlers = new Map<KeyOrCode, EventHandlerSet>();
-        this.keysPressed = new Set<KeyOrCode>();
+        this.keysDown = new Set<KeyOrCode>();
 
-        document.addEventListener("keydown", e => this.keysPressed.add(e.key), false);
-        document.addEventListener("keyup", e => this.keysPressed.delete(e.key), false);
+        document.addEventListener("keydown", e => this.keysDown.add(e.key), false);
+        document.addEventListener("keyup", e => this.keysDown.delete(e.key), false);
     }
 
     addKeyDownHandler(key: KeyOrCode, f: KeyboardEventHandler) {
@@ -132,7 +133,7 @@ class Scene {
     }
     
     update() {
-        this.keysPressed.forEach(k => {
+        this.keysDown.forEach(k => {
             this.keyDownHandlers.get(k)?.forEach(h => h());
         });
         this.actors.forEach(actor => {
