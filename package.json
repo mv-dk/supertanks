@@ -7,7 +7,8 @@
   "scripts": {
     "start": "./node_modules/.bin/http-server -s -o ./dist",
     "startwatch": "(./node_modules/.bin/http-server -s -o ./dist &) && (copy-and-watch --watch src/*.{html,ts} dist/ &) && tsc -p . --watch",
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "deploy-staging": "rsync dist/* $SUPERTANKS_DEPLOY_STAGING_HOST"
   },
   "devDependencies": {
     "copy-and-watch": "^0.1.6",
