@@ -184,6 +184,10 @@ class IngameScene extends Scene {
             if (this.turnIdx == prevTurnIdx) throw new Error("All tanks are dead");
         } while(this.tanks[this.turnIdx].isDead);
     }
+
+    get currentTank(): Tank {
+        return this.tanks[this.turnIdx];
+    }
 }
 
 interface IActor {
@@ -280,16 +284,19 @@ class Tank extends Actor {
         } else {
             this.velocity.x += this.gravity.x;
         }
-        
-        this.increaseAngle();        
     }
 
-    increaseAngle() {
-        this.angle = (this.angle + 0.01) % Math.PI;
+    increaseAngle(amount: number = 1) {
+        let angleInDegrees = Math.round(this.angle*180/Math.PI);
+        angleInDegrees += amount;
+        if (angleInDegrees < 0) angleInDegrees += 180;
+        else if (angleInDegrees > 180) angleInDegrees -= 180;
+
+        this.angle = angleInDegrees*Math.PI/180;
     }
 
-    decreaseAngle() {
-        this.angle = (this.angle - 0.01) % Math.PI;
+    decreaseAngle(amount: number = 1) {
+        this.increaseAngle(-amount);
     }    
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -335,5 +342,8 @@ ingameScene.setBackgroundColor("black");
 
 game.activateScene(ingameScene);
 
-game.addKeyDownHandler("ArrowUp", e => console.log("yay, you pressed up"));
+game.addKeyDownHandler("ArrowUp", e => ingameScene.currentTank.power += 1);
+game.addKeyDownHandler("ArrowDown", e => ingameScene.currentTank.power -= 1);
+game.addKeyDownHandler("ArrowLeft", e => ingameScene.currentTank.increaseAngle());
+game.addKeyDownHandler("ArrowRight", e => ingameScene.currentTank.decreaseAngle());
 
