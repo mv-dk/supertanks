@@ -211,6 +211,7 @@ interface IDrawable {
 type XY = {x: number, y: number};
 type Position = XY;
 type Vector = XY;
+type Circle = { center: XY, radius: number}
 
 class Actor implements IActor,IDrawable {
     position: Position;
@@ -330,6 +331,68 @@ class Tank extends Actor {
     }
 }
 
+class Terrain extends Actor {
+
+    nodes: Set<TerrainNode> = new Set<TerrainNode>()
+
+    constructor(p: Position) {
+        super(p)
+        this.nodes.add(new TerrainNode(p, 200));
+    }
+    
+    draw(ctx: CanvasRenderingContext2D) {
+        this.nodes.forEach(x => x.draw(ctx));
+    }
+
+    intersects(p: Position): boolean {
+        return Array.from(this.nodes).some(x => x.intersects(p));
+    }
+
+    nodeAt(p: Position): TerrainNode | undefined {
+        return Array.from(this.nodes).find(x => x.intersects(p));
+    }
+}
+
+class TerrainNode implements IDrawable {
+    static color: string = "green";
+    position: Position;
+    size: number;
+
+    constructor(p: Position, size: number) {
+        this.position = p;
+        this.size = size;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.beginPath();
+        ctx.fillStyle = TerrainNode.color;
+        ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
+        
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "yellow";
+        ctx.strokeRect(this.position.x, this.position.y, this.size, this.size);
+        ctx.closePath();
+    }
+
+    subdivide(t: Terrain) {
+        if (this.size == 1) return;
+        this.size /= 2;
+        let newNodes = [
+            new TerrainNode({x: this.position.x + this.size, y: this.position.y}, this.size),
+            new TerrainNode({x: this.position.x, y: this.position.y + this.size}, this.size),
+            new TerrainNode({x: this.position.x + this.size, y: this.position.y + this.size}, this.size)
+        ];
+        newNodes.forEach(x => t.nodes.add(x));
+    }
+
+    intersects(p: Position): boolean {
+        let xx = this.position.x + this.size;
+        let yy = this.position.y + this.size;    
+        return this.position.x <= p.x && xx >= p.x &&
+            this.position.y <= p.y && yy >= p.y;
+    }
+}
+
 let game = new Game();
 
 let mainMenu = new Scene("main menu");
@@ -346,9 +409,12 @@ ingameScene.addTanks(
     [
         { name:"Hubert", color:"red"}, 
         { name:"Martin", color:"blue"},
-        { name:"Clarisse", color:"green"}
+        { name:"Clarisse", color:"lime"}
     ]);
 ingameScene.setBackgroundColor("black");
+let terrain = new Terrain({x: 100, y: 100});
+Array.from(terrain.nodes)[0].subdivide(terrain);
+ingameScene.addActor(terrain);
 
 game.activateScene(ingameScene);
 
@@ -357,3 +423,14 @@ ingameScene.addKeyDownHandler("ArrowDown", () => ingameScene.currentTank.power -
 ingameScene.addKeyDownHandler("ArrowLeft", () => ingameScene.currentTank.increaseAngle());
 ingameScene.addKeyDownHandler("ArrowRight", () => ingameScene.currentTank.decreaseAngle());
 ingameScene.addKeyDownHandler("a", () => ingameScene.nextTurn());
+
+document.addEventListener("mousedown", (ev) => {
+    let mouseX = ev.offsetX;
+    let mouseY = ev.offsetY;    
+    let node = terrain.nodeAt({x: mouseX, y: mouseY});
+    if (node == undefined) {
+        console.log(`nothing at ${mouseX}, ${mouseY}`);
+    } else {
+        node.subdivide(terrain);
+    }
+});
