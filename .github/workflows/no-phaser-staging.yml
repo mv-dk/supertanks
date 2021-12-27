@@ -1,0 +1,33 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ no-phaser-staging ]
+  pull_request:
+    branches: [ no-phaser-staging ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy-no-phaser-to-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: push files to server
+        env: 
+          remote_key: ${{ secrets.IDENTITY }}
+          rsync_target: ${{ secrets.RSYNC_TARGET }}
+      - run: npm install
+      - run: npm build
+      - run: |
+          mkdir ~/.ssh
+          echo "$remote_key" > ~/.ssh/gh_actions_key
+          chmod 600 ~/.ssh/gh_actions_key
+          rsync --delete -a -e "ssh -i ~/.ssh/gh_actions_key -o StrictHostKeyChecking=no" src/ $rsync_target
