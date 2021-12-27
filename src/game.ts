@@ -54,8 +54,8 @@ class Scene {
     
     keyDownHandlers: Map<KeyOrCode, EventHandlerSet>;
     keyUpHandlers: Map<KeyOrCode, EventHandlerSet>;
-    keysDown: Set<KeyOrCode>
-
+    keysDown: Set<KeyOrCode> // Keys that are held down at this moment
+    keysJustPressed: Set<KeyOrCode> // Keys that were pressed just now
     
     constructor(name: string){
         this.name = name;
@@ -67,6 +67,7 @@ class Scene {
         this.keyDownHandlers = new Map<KeyOrCode, EventHandlerSet>();
         this.keyUpHandlers = new Map<KeyOrCode, EventHandlerSet>();
         this.keysDown = new Set<KeyOrCode>();
+        this.keysJustPressed = new Set<KeyOrCode>();
 
         document.addEventListener("keydown", e => this.keysDown.add(e.key), false);
         document.addEventListener("keyup", e => this.keysDown.delete(e.key), false);
