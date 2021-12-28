@@ -349,7 +349,15 @@ class Terrain extends Actor {
     }
 
     nodeAt(p: Position): TerrainNode | undefined {
-        return Array.from(this.nodes).find(x => x.intersects(p));
+        return Array.from(this.nodes).find(x => x.intersects(p))?.nodeAt(p);
+    }
+
+    countNodes(): number {
+        let i = 0;
+        for (let n of this.nodes) {
+            i += n.countNodes();
+        }
+        return i;
     }
 }
 
@@ -357,39 +365,87 @@ class TerrainNode implements IDrawable {
     static color: string = "green";
     position: Position;
     size: number;
+    nodes: Set<TerrainNode> = new Set()
+    isLeaf: boolean = true;
 
     constructor(p: Position, size: number) {
         this.position = p;
         this.size = size;
+        /* console.log(`constructor, ${p.x},${p.y}, size ${size}`); */
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        ctx.beginPath();
-        ctx.fillStyle = TerrainNode.color;
-        ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
-        
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "yellow";
-        ctx.strokeRect(this.position.x, this.position.y, this.size, this.size);
-        ctx.closePath();
+        if (this.isLeaf) {
+            ctx.beginPath();
+            ctx.fillStyle = TerrainNode.color;
+            ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
+            
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "yellow";
+            ctx.strokeRect(this.position.x, this.position.y, this.size, this.size);
+            ctx.closePath();
+        } else {
+            this.nodes.forEach(x => x.draw(ctx));
+        }
     }
 
-    subdivide(t: Terrain) {
-        if (this.size == 1) return;
-        this.size /= 2;
+    subdivide() {
+        if (this.size <= 5) return;
+        this.isLeaf = false;
+        let sz = this.size/2;
         let newNodes = [
-            new TerrainNode({x: this.position.x + this.size, y: this.position.y}, this.size),
-            new TerrainNode({x: this.position.x, y: this.position.y + this.size}, this.size),
-            new TerrainNode({x: this.position.x + this.size, y: this.position.y + this.size}, this.size)
+            new TerrainNode(this.position, sz),
+            new TerrainNode({x: this.position.x + sz, y: this.position.y}, sz),
+            new TerrainNode({x: this.position.x, y: this.position.y + sz}, sz),
+            new TerrainNode({x: this.position.x + sz, y: this.position.y + sz}, sz)
         ];
-        newNodes.forEach(x => t.nodes.add(x));
+        /* console.log("creating 4 new nodes: ");
+        newNodes[0].print();
+        newNodes[1].print();
+        newNodes[2].print();
+        newNodes[3].print(); */
+
+        newNodes.forEach(x => this.nodes.add(x));
+    }
+
+    print() {
+        console.log(`x: ${this.position.x}, y: ${this.position.y}, size: ${this.size}`);
     }
 
     intersects(p: Position): boolean {
         let xx = this.position.x + this.size;
         let yy = this.position.y + this.size;    
-        return this.position.x <= p.x && xx >= p.x &&
+        let inArea = this.position.x <= p.x && xx >= p.x &&
             this.position.y <= p.y && yy >= p.y;
+
+        if (this.isLeaf) {
+            return inArea;
+        }
+        if (!inArea) return false;
+
+        for (let n of this.nodes) {
+            if (n.intersects(p)) return true;
+        }
+        return false;
+    }
+
+    nodeAt(p: Position): TerrainNode {
+        if (this.isLeaf) {
+            if (this.intersects(p)) return this;
+            return undefined;
+        }
+        for (let n of this.nodes) {
+            if (n.intersects(p)) return n.nodeAt(p);
+        }
+    }
+
+    countNodes(): number {
+        if (this.isLeaf) return 1;
+        let i = 0;
+        for (let n of this.nodes) {
+            i += n.countNodes();
+        }
+        return i;
     }
 }
 
@@ -413,7 +469,7 @@ ingameScene.addTanks(
     ]);
 ingameScene.setBackgroundColor("black");
 let terrain = new Terrain({x: 100, y: 100});
-Array.from(terrain.nodes)[0].subdivide(terrain);
+//Array.from(terrain.nodes)[0].subdivide();
 ingameScene.addActor(terrain);
 
 game.activateScene(ingameScene);
@@ -431,6 +487,7 @@ document.addEventListener("mousedown", (ev) => {
     if (node == undefined) {
         console.log(`nothing at ${mouseX}, ${mouseY}`);
     } else {
-        node.subdivide(terrain);
+        console.log("subdividing");
+        node.subdivide();
     }
 });
