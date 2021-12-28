@@ -150,6 +150,8 @@ class Scene {
         ctx.fillRect(0, 0, Game.WIDTH, Game.HEIGHT);
 
         this.actors.forEach(a => a.draw(ctx));
+
+        return ctx;        
     }
 
     delete() {
@@ -210,13 +212,72 @@ interface IDrawable {
 
 type XY = {x: number, y: number};
 type Position = XY;
-type Vector = XY;
-type Circle = { center: XY, radius: number}
+class Vector {
+    x: number;
+    y: number;
+    constructor(x: number, y:number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    get length() {
+        return Math.sqrt(this.x**2 + this.y**2);
+    }
+
+    multiply(n: number): Vector {
+        return new Vector(this.x*n, this.y*n);
+    }
+
+    add(p: Position): Vector {
+        return new Vector(this.x + p.x, this.y + p.y);
+    }
+
+    static from(p1: XY, p2: XY):Vector {
+        return new Vector(p2.x-p1.x, p2.y-p1.y);
+    }
+};
+class Circle { 
+    center: Position;
+    radius: number;
+
+    constructor(center: Position, radius: number) {
+        this.center = center;
+        this.radius = radius;
+    }
+
+    intersects(p: Position) {
+        return this.radius > Vector.from(this.center, p).length;
+    }
+
+    intersectsAny(ps: Position[]) {
+        return ps.some(p => this.intersects(p));
+    }
+}
+
+class Rectangle {
+    position: Position;
+    width: number;
+    height: number;
+
+    constructor(p: Position, width: number, height: number) {
+        this.position = p;
+        this.width = width;
+        this.height = height;
+    }
+
+    get midpoint() {
+        return {x: this.position.x + this.width/2, y: this.position.y + this.height/2}; 
+    }
+    intersects(p: Position) {
+        return this.position.x <= p.x && this.position.x + this.width >= p.x &&
+            this.position.y <= p.y && this.position.y + this.height >= p.y;
+    }
+}
 
 class Actor implements IActor,IDrawable {
     position: Position;
-    velocity: Vector = {x: 0, y: 0};
-    gravity: Vector = {x: 0, y: 0};
+    velocity: Vector = new Vector(0,0);
+    gravity: Vector = new Vector(0,0);
     
     constructor(position: Position = {x: 0, y: 0}){
         this.position = position;
@@ -332,37 +393,39 @@ class Tank extends Actor {
 }
 
 class Terrain extends Actor {
+    static NODE_SIZE: number = 768;
+    static MIN_NODE_SIZE: number = 4;
 
-    nodes: Set<TerrainNode> = new Set<TerrainNode>()
+    node: TerrainNode;
 
-    constructor(p: Position) {
+    constructor(p: Position, size: number = Terrain.NODE_SIZE) {
         super(p)
-        this.nodes.add(new TerrainNode(p, 200));
+        this.node = new TerrainNode(p, Math.round(size));
     }
     
     draw(ctx: CanvasRenderingContext2D) {
-        this.nodes.forEach(x => x.draw(ctx));
+        this.node.draw(ctx);
     }
 
     intersects(p: Position): boolean {
-        return Array.from(this.nodes).some(x => x.intersects(p));
+        return this.node.intersects(p);
     }
 
     nodeAt(p: Position): TerrainNode | undefined {
-        return Array.from(this.nodes).find(x => x.intersects(p))?.nodeAt(p);
+        return this.node.nodeAt(p);
     }
 
     countNodes(): number {
-        let i = 0;
-        for (let n of this.nodes) {
-            i += n.countNodes();
-        }
-        return i;
+        return this.node.countNodes();
+    }
+
+    removeCircle(c: Circle) {
+        this.node.removeCircle(c);
     }
 }
 
 class TerrainNode implements IDrawable {
-    static color: string = "green";
+    color: string = "green";
     position: Position;
     size: number;
     nodes: Set<TerrainNode> = new Set()
@@ -370,14 +433,20 @@ class TerrainNode implements IDrawable {
 
     constructor(p: Position, size: number) {
         this.position = p;
-        this.size = size;
+        this.position.x = Math.round(this.position.x);
+        this.position.y = Math.round(this.position.y);
+        this.size = Math.round(size);
         /* console.log(`constructor, ${p.x},${p.y}, size ${size}`); */
+    }
+
+    get midpoint(): Position {
+        return { x: this.position.x + this.size / 2, y: this.position.y + this.size / 2 };
     }
 
     draw(ctx: CanvasRenderingContext2D) {
         if (this.isLeaf) {
             ctx.beginPath();
-            ctx.fillStyle = TerrainNode.color;
+            ctx.fillStyle = this.color;
             ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
             
             ctx.lineWidth = 1;
@@ -390,7 +459,7 @@ class TerrainNode implements IDrawable {
     }
 
     subdivide() {
-        if (this.size <= 5) return;
+        if (this.size <= Terrain.MIN_NODE_SIZE) return;
         this.isLeaf = false;
         let sz = this.size/2;
         let newNodes = [
@@ -418,15 +487,15 @@ class TerrainNode implements IDrawable {
         let inArea = this.position.x <= p.x && xx >= p.x &&
             this.position.y <= p.y && yy >= p.y;
 
-        if (this.isLeaf) {
+        return inArea;
+        /* if (this.isLeaf || !inArea) {
             return inArea;
         }
-        if (!inArea) return false;
 
         for (let n of this.nodes) {
             if (n.intersects(p)) return true;
         }
-        return false;
+        return false; */
     }
 
     nodeAt(p: Position): TerrainNode {
@@ -446,6 +515,66 @@ class TerrainNode implements IDrawable {
             i += n.countNodes();
         }
         return i;
+    }
+
+    get nw(): Position { return this.position; }
+    get ne(): Position { return {x: this.position.x + this.size, y: this.position.y}; }
+    get sw(): Position { return {x: this.position.x, y: this.position.y + this.size}; }
+    get se(): Position { return {x: this.position.x + this.size, y: this.position.y + this.size}; }
+    
+    get rect(): Rectangle{
+        return new Rectangle(this.position, this.size, this.size);
+    }
+
+    overlapsCircle(c: Circle): boolean {
+        let p0 = {x: c.center.x, y: c.center.y};
+        if (p0.x < this.nw.x) p0.x = this.nw.x;
+        else if (p0.x > this.ne.x) p0.x = this.ne.x;
+        if (p0.y < this.nw.y) p0.y = this.nw.y;
+        else if (p0.y > this.sw.y) p0.y = this.sw.y;
+
+        return c.intersects(p0);
+    }
+
+    isInsideCircle(c: Circle): boolean {
+        let result = c.intersects(this.nw) &&
+            c.intersects(this.ne) &&
+            c.intersects(this.sw) &&
+            c.intersects(this.se);
+        return result;
+    }
+
+    removeCircle(c: Circle) {
+        if (this.isLeaf) {
+            if (this.overlapsCircle(c)) {
+                if (this.isInsideCircle(c)) {
+                    this.nodes = new Set();
+                } else {
+                    this.subdivide();
+                    this.removeCircle(c);
+                }
+            }
+            return;
+         }
+
+        let nodesToDelete = new Set<TerrainNode>();    
+        for (let n of this.nodes){ 
+            if (n.overlapsCircle(c)) {
+                n.color = "yellow";
+                if (n.isInsideCircle(c) || n.size <= Terrain.MIN_NODE_SIZE){
+                    nodesToDelete.add(n);
+                } else {
+                    if (n.isLeaf) {
+                        n.subdivide();
+                        n.removeCircle(c);
+                    } else {
+                        n.removeCircle(c);
+                    }
+                }
+            }
+            
+        }
+        nodesToDelete.forEach(x => this.nodes.delete(x));
     }
 }
 
@@ -468,8 +597,7 @@ ingameScene.addTanks(
         { name:"Clarisse", color:"lime"}
     ]);
 ingameScene.setBackgroundColor("black");
-let terrain = new Terrain({x: 100, y: 100});
-//Array.from(terrain.nodes)[0].subdivide();
+let terrain = new Terrain({x: 128, y: 128}, 512);
 ingameScene.addActor(terrain);
 
 game.activateScene(ingameScene);
@@ -480,14 +608,29 @@ ingameScene.addKeyDownHandler("ArrowLeft", () => ingameScene.currentTank.increas
 ingameScene.addKeyDownHandler("ArrowRight", () => ingameScene.currentTank.decreaseAngle());
 ingameScene.addKeyDownHandler("a", () => ingameScene.nextTurn());
 
-document.addEventListener("mousedown", (ev) => {
+document.addEventListener("mousemove", (ev) => {
+    
     let mouseX = ev.offsetX;
-    let mouseY = ev.offsetY;    
-    let node = terrain.nodeAt({x: mouseX, y: mouseY});
+    let mouseY = ev.offsetY;
+    let p = {x: mouseX, y: mouseY};
+    terrain.removeCircle(new Circle(p, 40));
+    return;
+    let node = terrain.nodeAt(p);
     if (node == undefined) {
         console.log(`nothing at ${mouseX}, ${mouseY}`);
     } else {
-        console.log("subdividing");
-        node.subdivide();
+        console.log(`button: ${ev.button}`);
+        if (ev.button == 0) {
+            console.log("subdividing");
+            node.subdivide();
+        } else if (ev.button == 1) {
+            console.log("deleting circle");
+            terrain.removeCircle(new Circle(p, 40));
+        }
     }
 });
+
+function generateTerrain(): Terrain {
+    let t = new Terrain({x: 0, y:0});
+    return t;
+}
