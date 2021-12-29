@@ -1,5 +1,6 @@
-import { Position, Circle, Rectangle } from "./Trigonometry.js";
-import { IDrawable } from "./IDrawable.js";
+import { Position, Circle, Rectangle } from "./lib/Trigonometry.js";
+import { IDrawable } from "./lib/IDrawable.js";
+
 import {Terrain} from './Terrain.js';
 
 export class TerrainNode implements IDrawable {

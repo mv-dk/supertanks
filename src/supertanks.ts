@@ -1,6 +1,7 @@
-import {Game} from './Game.js';
-import {Circle, Vector, Rectangle} from './Trigonometry.js';
-import {Scene} from './Scene.js';
+import {Game} from './lib/Game.js';
+import {Circle, Vector, Rectangle} from './lib/Trigonometry.js';
+import {Scene} from './lib/Scene.js';
+
 import { IngameScene } from './IngameScene.js';
 import { Terrain } from './Terrain.js';
 

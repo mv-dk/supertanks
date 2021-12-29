@@ -1,6 +1,6 @@
-import { Actor } from "./Actor.js";
-import { Game } from "./Game.js";
-import { Position } from './Trigonometry.js';
+import { Actor } from "./lib/Actor.js";
+import { Game } from "./lib/Game.js";
+import { Position } from './lib/Trigonometry.js';
 
 export type TankOption = {name:string, color:string};
 

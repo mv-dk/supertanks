@@ -1,5 +1,6 @@
-import { Actor } from './Actor.js';
-import { Position,Circle } from './Trigonometry.js';
+import { Actor } from './lib/Actor.js';
+import { Position,Circle } from './lib/Trigonometry.js';
+
 import { TerrainNode as TerrainNode } from './TerrainNode.js';
 
 export class Terrain extends Actor {

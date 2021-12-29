@@ -1,7 +1,7 @@
-import {Scene} from './Scene.js';
-import { Tank, TankOption } from './Tank.js';
-import { Game } from './Game.js';
+import {Scene} from './lib/Scene.js';
+import { Game } from './lib/Game.js';
 
+import { Tank, TankOption } from './Tank.js';
 
 export class IngameScene extends Scene {
     tanks: Tank[];
