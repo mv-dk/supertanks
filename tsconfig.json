@@ -6,7 +6,7 @@
       "sourceMap": true,
       "target": "ES2016",
       "outDir": "dist",
-      "sourceRoot": ".",
+      "sourceRoot": "src",
       "disableSourceOfProjectReferenceRedirect": true
     },
     "include": [

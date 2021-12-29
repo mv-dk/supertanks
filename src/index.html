@@ -7,17 +7,29 @@
     <script id="map">
         var r = Math.random();    
 
-        function loadScript(src) {
+        function loadScript(src, isModule) {
             let s = document.createElement("script");
             s.src = src+"?"+r;
+            if (isModule == true)
+                s.type = "module";
             document.body.appendChild(s);
+        }
+
+        function loadScriptAndMap(src) {
+            loadScript(src+".js", true);
+            loadScript(src+".js.map");
+        }
+
+        function loadAllScriptsAndMaps(scripts) {
+            scripts.forEach(x => loadScriptAndMap(x) );
         }
         
         
-        loadScript("game.js.map");
-    </script>
-    <script id="src">
-        loadScript("game.js");
+        loadAllScriptsAndMaps(
+            [
+                "supertanks"
+            ]
+            );
     </script>
 
 </body>
