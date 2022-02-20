@@ -1,7 +1,7 @@
 import { Scene as Scene } from "./Scene.js";
 
 export type KeyOrCode = string;
-export type KeyboardEventHandler = () => void;
+export type KeyboardEventHandler = (e?:KeyboardEvent) => void;
 export type EventHandlerSet = Set<KeyboardEventHandler>;
 
 /**

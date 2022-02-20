@@ -73,6 +73,7 @@ export class TerrainNode implements IDrawable {
             if (n.intersects(p))
                 return n.nodeAt(p);
         }
+        return undefined;
     }
 
     countNodes(): number {

@@ -29,11 +29,17 @@ ingameScene.addActor(terrain);
 
 game.activateScene(ingameScene);
 
-ingameScene.addKeyDownHandler("ArrowUp", () => ingameScene.currentTank.power += 1);
-ingameScene.addKeyDownHandler("ArrowDown", () => ingameScene.currentTank.power -= 1);
-ingameScene.addKeyDownHandler("ArrowLeft", () => ingameScene.currentTank.increaseAngle());
-ingameScene.addKeyDownHandler("ArrowRight", () => ingameScene.currentTank.decreaseAngle());
+ingameScene.addKeyPressedHandler("ArrowUp", () => ingameScene.currentTank.power += 1);
+ingameScene.addKeyPressedHandler("ArrowDown", () => ingameScene.currentTank.power -= 1);
+ingameScene.addKeyPressedHandler("ArrowLeft", () => ingameScene.currentTank.increaseAngle());
+ingameScene.addKeyPressedHandler("ArrowRight", () => ingameScene.currentTank.decreaseAngle());
 ingameScene.addKeyDownHandler("a", () => ingameScene.nextTurn());
+ingameScene.addKeyUpHandler("b", () => console.log("Draw time:", ingameScene.debugTime));
+
+ingameScene.addKeyDownHandler("c", () => console.log("c down"));
+ingameScene.addKeyPressedHandler("c", () => console.log("c pressed"));
+ingameScene.addKeyUpHandler("c", () => console.log("c up"));
+
 
 document.addEventListener("mousemove", (ev) => {
     
