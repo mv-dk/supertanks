@@ -15,7 +15,6 @@ export class TerrainNode implements IDrawable {
         this.position.x = Math.round(this.position.x);
         this.position.y = Math.round(this.position.y);
         this.size = Math.round(size);
-        /* console.log(`constructor, ${p.x},${p.y}, size ${size}`); */
     }
 
     get midpoint(): Position {
@@ -48,11 +47,6 @@ export class TerrainNode implements IDrawable {
             new TerrainNode({ x: this.position.x, y: this.position.y + sz }, sz),
             new TerrainNode({ x: this.position.x + sz, y: this.position.y + sz }, sz)
         ];
-        /* console.log("creating 4 new nodes: ");
-        newNodes[0].print();
-        newNodes[1].print();
-        newNodes[2].print();
-        newNodes[3].print(); */
         newNodes.forEach(x => this.nodes.add(x));
     }
 
@@ -67,14 +61,6 @@ export class TerrainNode implements IDrawable {
             this.position.y <= p.y && yy >= p.y;
 
         return inArea;
-        /* if (this.isLeaf || !inArea) {
-            return inArea;
-        }
-
-        for (let n of this.nodes) {
-            if (n.intersects(p)) return true;
-        }
-        return false; */
     }
 
     nodeAt(p: Position): TerrainNode {
