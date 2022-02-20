@@ -4,6 +4,18 @@ export type KeyOrCode = string;
 export type KeyboardEventHandler = () => void;
 export type EventHandlerSet = Set<KeyboardEventHandler>;
 
+/**
+ * Game is the one responsible for creating a canvas.
+ * It contains an active Scene object.
+ * The update() and draw() methods are invoked on the
+ * active Scene object at regular intervals (specified
+ * by Game.INTERVAL).
+ * 
+ * Changing the scene is done by calling activateScene.
+ * When changing the scene, delete() is called on the 
+ * active scene, and create() and activate() is called
+ * on the new scene.
+ */
 export class Game {
     canvas: HTMLCanvasElement;
     activeScene: Scene;
@@ -19,8 +31,6 @@ export class Game {
         this.canvas.width = Game.WIDTH;
         this.canvas.height = Game.HEIGHT;
         document.body.appendChild(this.canvas);
-
-
     }
 
     activateScene(scene: Scene) {

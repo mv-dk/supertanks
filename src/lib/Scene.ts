@@ -1,6 +1,13 @@
 import {Game, KeyOrCode, EventHandlerSet, KeyboardEventHandler} from './Game.js';
 import {IActor} from './IActor.js';
 
+/**
+ * A scene is a container for IActors.
+ * If the scene is active, the update() method calls update() on all actors,
+ * and the draw() method calls draw() on all actors.
+ * 
+ * A Scene also has sets of key handlers. 
+ */
 export class Scene {
     actors: Set<IActor>;
     active: Boolean;
